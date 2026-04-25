@@ -1,0 +1,7 @@
+{
+    "kiroAgent.trustedCommands": [
+        "Get-Content *",
+        "./gradlew assembleDebug"
+    ],
+    "kiroAgent.configureMCP": "Disabled"
+}

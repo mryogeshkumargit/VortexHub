@@ -1,0 +1,104 @@
+{
+  "provider": {
+    "name": "Fal AI - GPT Image 1.5 Edit",
+    "type": "IMAGE_EDITING",
+    "baseUrl": "https://fal.run",
+    "apiKey": "",
+    "isEnabled": true
+  },
+  "endpoints": [
+    {
+      "path": "/fal-ai/gpt-image-1.5/edit",
+      "method": "POST",
+      "purpose": "image_edit",
+      "requestSchema": {
+        "headers": {
+          "Authorization": "Key {apiKey}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "prompt": "{prompt}",
+          "image_url": "{image}",
+          "image_size": "landscape_4_3",
+          "num_inference_steps": 28,
+          "guidance_scale": 7.5,
+          "strength": 0.8,
+          "num_images": 1,
+          "enable_safety_checker": false,
+          "output_format": "jpeg"
+        }
+      },
+      "responseSchema": {
+        "imageUrlPath": "images[0].url",
+        "errorPath": "detail"
+      }
+    }
+  ],
+  "models": [
+    {
+      "modelId": "gpt-image-1.5-edit",
+      "displayName": "GPT Image 1.5 Edit",
+      "isActive": true,
+      "capabilities": {},
+      "parameters": [
+        {
+          "name": "image_size",
+          "type": "STRING",
+          "defaultValue": "landscape_4_3",
+          "required": false,
+          "description": "Image size: square_hd, square, portrait_4_3, portrait_16_9, landscape_4_3, landscape_16_9 or {width}x{height}"
+        },
+        {
+          "name": "num_inference_steps",
+          "type": "INTEGER",
+          "defaultValue": "28",
+          "minValue": "1",
+          "maxValue": "50",
+          "required": false,
+          "description": "Number of denoising steps"
+        },
+        {
+          "name": "guidance_scale",
+          "type": "FLOAT",
+          "defaultValue": "7.5",
+          "minValue": "1.0",
+          "maxValue": "20.0",
+          "required": false,
+          "description": "Guidance scale for generation"
+        },
+        {
+          "name": "strength",
+          "type": "FLOAT",
+          "defaultValue": "0.8",
+          "minValue": "0.0",
+          "maxValue": "1.0",
+          "required": false,
+          "description": "How much to transform the image (0=no change, 1=full change)"
+        },
+        {
+          "name": "num_images",
+          "type": "INTEGER",
+          "defaultValue": "1",
+          "minValue": "1",
+          "maxValue": "4",
+          "required": false,
+          "description": "Number of images to generate"
+        },
+        {
+          "name": "enable_safety_checker",
+          "type": "BOOLEAN",
+          "defaultValue": "false",
+          "required": false,
+          "description": "Enable safety checker"
+        },
+        {
+          "name": "output_format",
+          "type": "STRING",
+          "defaultValue": "jpeg",
+          "required": false,
+          "description": "Output format: jpeg, png, or webp"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- VortexAI Basic Theme -->
+    <style name="Base.Theme.VortexAndroid" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Primary colors -->
+        <item name="colorPrimary">@color/vortex_primary</item>
+        <item name="colorPrimaryDark">@color/vortex_primary_variant</item>
+        <item name="colorAccent">@color/vortex_secondary</item>
+        
+        <!-- Background -->
+        <item name="android:windowBackground">@color/vortex_background</item>
+        
+        <!-- Status bar -->
+        <item name="android:statusBarColor">@color/vortex_primary</item>
+        
+        <!-- Window properties -->
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowTranslucentNavigation">false</item>
+    </style>
+
+    <!-- Application theme -->
+    <style name="Theme.VortexAndroid" parent="Base.Theme.VortexAndroid" />
+    
+    <!-- Splash screen theme -->
+    <style name="Theme.VortexAndroid.Splash" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@color/vortex_primary</item>
+        <item name="android:statusBarColor">@color/vortex_primary</item>
+    </style>
+</resources> 

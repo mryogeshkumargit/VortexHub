@@ -1,0 +1,206 @@
+package com.vortexai.android.ui.screens.settings
+
+data class ModelInfo(val id: String = "", val name: String = "")
+
+data class SettingsUiState(
+    val isDarkMode: Boolean = false,
+    val themeMode: String = "system", // system | light | dark
+    val isLoading: Boolean = false,
+    val language: String = "English",
+    val fontSize: String = "Medium",
+    val themeColor: String = "Blue",
+    val chatBubbleStyle: String = "Modern",
+    val messageLimit: Int = 100,
+    val typingIndicator: Boolean = true,
+    val autoSaveChats: Boolean = true,
+    val llmProvider: String = "Together AI",
+    val llmModel: String = "",
+    val availableModels: List<ModelInfo> = emptyList(),
+    val modelsByProvider: Map<String, List<ModelInfo>> = emptyMap(),
+    val isLoadingModels: Boolean = false,
+    val responseTemperature: Float = 0.7f,
+    val maxTokens: Int = 4096,
+    val topP: Float = 1.0f,
+    val frequencyPenalty: Float = 0.0f,
+    val responseLengthStyle: String = "natural",
+    val enableResponseFormatting: Boolean = false,
+    val customMaxTokens: Int = 2048,
+    val imageProvider: String = "Together AI",
+    val imageSize: String = "1024x1024",
+    val imageQuality: String = "Standard",
+    val imageModel: String = "",
+    val availableImageModels: List<String> = emptyList(),
+    val availableLoraModels: List<String> = emptyList(),
+    val isLoadingLoraModels: Boolean = false,
+    val imageModelsByProvider: Map<String, List<String>> = emptyMap(),
+    val steps: Int = 20,
+    val guidanceScale: Float = 7.5f,
+    val ttsProvider: String = "ModelsLab",
+    val ttsModel: String = "",
+    val sttProvider: String = "Together AI",
+    val ttsApiKey: String = "",
+    val sttApiKey: String = "",
+    val ttsVoice: String = "nova",
+    val ttsSpeed: Float = 1.0f,
+    val ttsPitch: Float = 0.0f,
+    val sttLanguage: String = "english",
+    val autoPlayTts: Boolean = false,
+    val voiceActivation: Boolean = false,
+    val experimentalFeaturesEnabled: Boolean = false,
+    val username: String = "",
+    val fullName: String = "",
+    val email: String = "",
+    val dateOfBirth: String = "",
+    val endpointError: String = "",
+    val modelsLabApiKey: String = "",
+    val customLlmEndpoint: String = "",
+    val customLlmApiKey: String = "",
+    val customLlmApiPrefix: String = "/v1",
+    // LLM API keys
+    val togetherAiApiKey: String = "",
+    val geminiApiKey: String = "",
+    val openRouterApiKey: String = "",
+    val huggingFaceApiKey: String = "",
+    val grokApiKey: String = "",
+    val grokEndpoint: String = "https://api.x.ai/v1",
+    val ollamaEndpoint: String = "",
+    val koboldEndpoint: String = "",
+    val lmStudioEndpoint: String = "",
+    // Image API keys and endpoints
+    val togetherAiImageApiKey: String = "",
+    val imagenApiKey: String = "",
+    val huggingFaceImageApiKey: String = "",
+    val comfyUiEndpoint: String = "",
+    val comfyUiWorkflow: String = "SDXL",
+    val isLoadingImageModels: Boolean = false,
+    val modelsLabImageApiKey: String = "",
+    val grokImageApiKey: String = "",
+    val modelsLabWorkflow: String = "",
+    val useLora: Boolean = false,
+    val useCharacterImgAsSource: Boolean = false,
+    val loraModel: String = "",
+    val loraStrength: Float = 0.6f,
+    val customImageEndpoint: String = "",
+    val customImageApiKey: String = "",
+    val customImageApiPrefix: String = "/v1",
+    // Replicate API settings
+    val replicateApiKey: String = "",
+    val replicateModel: String = "",
+    val replicateDisableSafetyChecker: Boolean = false,
+    val replicateNegativePrompt: String = "",
+    val availableReplicateModels: List<String> = emptyList(),
+    val replicateWidth: Int = 1024,
+    val replicateHeight: Int = 1024,
+    // Image Editing settings
+    val imageEditingProvider: String = "Together AI",
+    val comfyUiEditingEndpoint: String = "",
+    val comfyUiEditingWorkflow: String = "",
+    val comfyUiEditingCheckpoint: String = "",
+    val availableComfyUiEditingWorkflows: List<String> = emptyList(),
+    val comfyUiMaintainAspectRatio: Boolean = true,
+    val replicateEditingApiKey: String = "",
+    val replicateEditingModel: String = "qwen-image-edit",
+    val togetherAiEditingApiKey: String = "",
+    val imageEditingModel: String = "black-forest-labs/FLUX.1-kontext-dev",
+    val imageEditingStrength: String = "Medium (0.5)",
+    // Modelslab Image Editing settings
+    val modelslabEditingApiKey: String = "",
+    val modelslabEditingModel: String = "flux-kontext-dev",
+    val modelslabEditingStrength: String = "High (0.7)",
+    val modelslabEditingStrengthFloat: Float? = 0.7f,
+    val imgbbApiKey: String = "",
+    val modelslabNegativePrompt: String = "(worst quality:2), (low quality:2), (normal quality:2), (jpeg artifacts), (blurry), (duplicate), (morbid), (mutilated), (out of frame), (extra limbs), (bad anatomy), (disfigured), (deformed), (cross-eye), (glitch), (oversaturated), (overexposed), (underexposed), (bad proportions), (bad hands), (bad feet), (cloned face), (long neck), (missing arms), (missing legs), (extra fingers), (fused fingers), (poorly drawn hands), (poorly drawn face), (mutation), (deformed eyes), watermark, text, logo, signature, grainy, tiling, censored, nsfw, ugly, blurry eyes, noisy image, bad lighting, unnatural skin, asymmetry",
+    // Video Generation Settings
+    val videoProvider: String = "fal.ai",
+    val falAiVideoApiKey: String = "",
+    val falAiVideoModel: String = "fal-ai/kling-video/v1/standard/image-to-video",
+    val replicateVideoApiKey: String = "",
+    val replicateVideoModel: String = "stability-ai/stable-video-diffusion",
+    val modelslabVideoApiKey: String = "",
+    val modelslabVideoModel: String = "video/text2video",
+    // Audio/TTS specific fields
+    val availableTtsVoices: List<String> = emptyList(),
+    val isLoadingTtsVoices: Boolean = false,
+    val ttsInitAudio: String = "", // For ModelsLab voice cloning
+    val ttsLanguage: String = "english", // For ModelsLab TTS
+    val togetherAiTtsApiKey: String = "", // Together AI TTS API key
+    val elevenLabsApiKey: String = "", // ElevenLabs API key
+    val ttsVoiceHindi: String = "Prabhat", // Hindi voice for ElevenLabs
+    val availableTtsModels: List<String> = emptyList(), // Available TTS models
+    val elevenLabsLanguage: String = "English", // Selected language for ElevenLabs
+    val negativePrompt: String = "", // For image generation
+    // Manual ModelsLab model management
+    val manuallyAddedLlmModels: List<String> = emptyList(),
+    val manuallyAddedImageModels: List<String> = emptyList(),
+    val manuallyAddedLoraModels: List<String> = emptyList(),
+    val manuallyAddedVoices: List<String> = emptyList(),
+    // API-specific manually added image models
+    val manuallyAddedTogetherAiImageModels: List<String> = emptyList(),
+    val manuallyAddedHuggingFaceImageModels: List<String> = emptyList(),
+    // Custom API manually added models
+    val manuallyAddedCustomLlmModels: List<String> = emptyList(),
+    val manuallyAddedCustomImageModels: List<String> = emptyList(),
+    // Chat appearance settings
+    val showCharacterBackground: Boolean = false,
+    val characterBackgroundOpacity: Float = 0.3f,
+    val manuallyAddedCustomAudioModels: List<String> = emptyList(),
+    val customAudioApiPrefix: String = "/v1",
+    val customAudioEndpoint: String = "",
+    val debugMessage: String = "",
+    // Supabase settings
+    val supabaseUrl: String = "",
+    val supabaseAnonKey: String = "",
+    val supabaseEnabled: Boolean = false,
+    val autoBackupEnabled: Boolean = false,
+    val cloudSyncEnabled: Boolean = false,
+    val lastBackupTime: Long = 0L,
+    val supabaseConnectionStatus: String = "",
+    val backupStatus: String = "",
+    val availableBackups: List<com.vortexai.android.data.remote.BackupFile> = emptyList(),
+    val showRestoreDialog: Boolean = false,
+    val selectedBackupForRestore: String = "",
+    // Notifications, analytics, etc.
+    val pushNotifications: Boolean = false,
+    val emailNotifications: Boolean = false,
+    val analyticsEnabled: Boolean = false,
+    val crashReports: Boolean = true,
+    val nsfwBlurEnabled: Boolean = true,
+    val nsfwWarningEnabled: Boolean = true,
+    val syncEnabled: Boolean = false,
+    val backupEnabled: Boolean = false,
+    // Test audio functionality
+    val isTestingAudio: Boolean = false,
+    val testAudioError: String = "",
+    
+    // Update Server Settings
+    val updateServerIp: String = "10.0.2.2",
+    val updateServerPort: String = "8000",
+    
+    // App Update Progress
+    val isDownloadingUpdate: Boolean = false,
+    val downloadProgress: Int = 0,
+    val downloadStatus: String = "",
+    
+    // ComfyUI specific settings
+    val comfyUiModels: List<String> = emptyList(),
+    val comfyUiLoraModels: List<String> = emptyList(),
+    val comfyUiCustomWorkflow: String = "",
+    val comfyUiNegativePrompt: String = "",
+    val comfyUiWorkflowFileName: String = "",
+    val imageWidth: Int = 512,
+    val imageHeight: Int = 512,
+    val imageSeed: Long = -1L,
+    val isLoadingComfyUiModels: Boolean = false,
+    
+    // Custom API Providers from database
+    val customLlmProviders: List<com.vortexai.android.data.models.CustomApiProvider> = emptyList(),
+    val selectedCustomLlmProviderId: String = "",
+    val customImageProviders: List<com.vortexai.android.data.models.CustomApiProvider> = emptyList(),
+    val selectedCustomImageProviderId: String = "",
+    val customImageEditProviders: List<com.vortexai.android.data.models.CustomApiProvider> = emptyList(),
+    val selectedCustomImageEditProviderId: String = "",
+    
+    // Import from Server Settings
+    val importServerUrl: String = "",
+    val importSelectedFile: String = ""
+) 

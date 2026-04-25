@@ -1,0 +1,101 @@
+{
+  "provider": {
+    "name": "Fal AI - FLUX 2 Pro",
+    "type": "IMAGE_GENERATION",
+    "baseUrl": "https://fal.run",
+    "apiKey": "",
+    "isEnabled": true
+  },
+  "endpoints": [
+    {
+      "path": "/fal-ai/flux-2-pro",
+      "method": "POST",
+      "purpose": "image_gen",
+      "requestSchema": {
+        "headers": {
+          "Authorization": "Key {apiKey}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "prompt": "{prompt}",
+          "image_size": "landscape_4_3",
+          "num_inference_steps": 28,
+          "guidance_scale": 3.5,
+          "num_images": 1,
+          "enable_safety_checker": false,
+          "output_format": "jpeg",
+          "safety_tolerance": "6"
+        }
+      },
+      "responseSchema": {
+        "imageUrlPath": "images[0].url",
+        "errorPath": "detail"
+      }
+    }
+  ],
+  "models": [
+    {
+      "modelId": "flux-2-pro",
+      "displayName": "FLUX 2 Pro",
+      "isActive": true,
+      "capabilities": {},
+      "parameters": [
+        {
+          "name": "image_size",
+          "type": "STRING",
+          "defaultValue": "landscape_4_3",
+          "required": false,
+          "description": "Image size: square_hd, square, portrait_4_3, portrait_16_9, landscape_4_3, landscape_16_9 or {width}x{height}"
+        },
+        {
+          "name": "num_inference_steps",
+          "type": "INTEGER",
+          "defaultValue": "28",
+          "minValue": "1",
+          "maxValue": "50",
+          "required": false,
+          "description": "Number of denoising steps"
+        },
+        {
+          "name": "guidance_scale",
+          "type": "FLOAT",
+          "defaultValue": "3.5",
+          "minValue": "1.5",
+          "maxValue": "5.0",
+          "required": false,
+          "description": "Guidance scale for generation"
+        },
+        {
+          "name": "num_images",
+          "type": "INTEGER",
+          "defaultValue": "1",
+          "minValue": "1",
+          "maxValue": "4",
+          "required": false,
+          "description": "Number of images to generate"
+        },
+        {
+          "name": "enable_safety_checker",
+          "type": "BOOLEAN",
+          "defaultValue": "false",
+          "required": false,
+          "description": "Enable safety checker"
+        },
+        {
+          "name": "safety_tolerance",
+          "type": "STRING",
+          "defaultValue": "6",
+          "required": false,
+          "description": "Safety tolerance: 1-6 (higher = more permissive)"
+        },
+        {
+          "name": "output_format",
+          "type": "STRING",
+          "defaultValue": "jpeg",
+          "required": false,
+          "description": "Output format: jpeg, png, or webp"
+        }
+      ]
+    }
+  ]
+}

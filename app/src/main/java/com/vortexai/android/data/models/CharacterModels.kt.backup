@@ -1,0 +1,622 @@
+package com.vortexai.android.data.models
+
+import androidx.room.*\nimport com.google.gson.annotations.SerializedName
+import com.google.gson.annotations.SerializedName
+import java.util.Date
+
+// Room Entity for Character
+@Entity(
+    tableName = "characters",
+    indices = [
+        Index(value = ["name"], unique = true),
+        Index(value = ["isActive"]),
+        Index(value = ["isPublic"]),
+        Index(value = ["createdAt"]),
+        Index(value = ["totalMessages"]),
+        Index(value = ["averageRating"])
+    ]
+)
+
+data class Character(
+    @PrimaryKey
+    val id: String,
+    
+    // Basic Information
+    val name: String,
+    val displayName: String? = null,
+    val shortDescription: String? = null,
+    val longDescription: String? = null,
+    val persona: String? = null,
+    val backstory: String? = null,
+    val greeting: String? = null,
+    val avatarUrl: String? = null,
+    
+    // Enhanced Character Details
+    val appearance: String? = null,
+    val personality: String? = null,
+    val scenario: String? = null,
+    val exampleDialogue: String? = null,
+    
+    // Detailed Appearance (JSON serialized)
+    val detailedAppearance: String? = null, // JSON string
+    
+    // Character Abilities (JSON serialized)
+    val characterAbilities: String? = null, // JSON string
+    
+    // Speech Patterns (JSON serialized)
+    val speechPatterns: String? = null, // JSON string
+    
+    // Advanced Prompts (JSON serialized)
+    val advancedPrompts: String? = null, // JSON string
+    
+    // Character Book/Lorebook (JSON serialized)
+    val characterBook: String? = null, // JSON string
+    
+    // Personality Traits (JSON serialized)
+    val personalityTraits: String? = null, // JSON string
+    
+    // Generation Settings
+    val temperature: Float = 0.7f,
+    val topP: Float = 0.9f,
+    val maxTokens: Int = 512,
+    
+    // Content and Safety
+    val nsfwEnabled: Boolean = false,
+    val nsfwSettings: String? = null, // JSON string
+    val contentWarnings: String? = null, // JSON array as string
+    val tags: String? = null, // JSON array as string
+    val categories: String? = null, // JSON array as string
+    
+    // Metadata
+    val creatorId: String? = null,
+    val creator: String? = null,
+    val creatorNotes: String? = null,
+    val characterVersion: String = "1.0",
+    val isPublic: Boolean = true,
+    val isFeatured: Boolean = false,\n    val isFavorite: Boolean = false,\n    val description: String? = null,\n    val stats: String? = null, // JSON string
+    val version: Int = 1,
+    
+    // Statistics
+    val totalMessages: Int = 0,
+    val totalConversations: Int = 0,
+    val averageRating: Float = 0.0f,
+    val totalRatings: Int = 0,
+    val lastInteraction: Date? = null,
+    
+    // System Fields
+    val createdAt: Date = Date(),
+    val updatedAt: Date = Date(),
+    val isActive: Boolean = true,
+    
+    // Custom fields (JSON serialized)
+    val customPrompts: String? = null, // JSON string
+    val customSettings: String? = null // JSON string
+)
+
+// Room Entity for Conversation
+@Entity(
+    tableName = "conversations",
+    indices = [
+        Index(value = ["characterId"]),
+        Index(value = ["userId"]),
+        Index(value = ["sessionId"]),
+        Index(value = ["isActive"]),
+        Index(value = ["lastMessageAt"]),
+        Index(value = ["createdAt"])
+    ],
+    foreignKeys = [
+        ForeignKey(
+            entity = Character::class,
+            parentColumns = ["id"],
+            childColumns = ["characterId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
+
+data class Conversation(
+    @PrimaryKey
+    val id: String,
+    
+    // Basic Information
+    val title: String? = null,
+    val characterId: String,
+    val characterName: String,
+    
+    // User Context
+    val userId: String? = null,
+    val sessionId: String? = null,
+    
+    // Conversation State
+    val isActive: Boolean = true,
+    val isArchived: Boolean = false,
+    val isShared: Boolean = false,
+    val isFavorite: Boolean = false,
+    
+    // Settings (JSON serialized)
+    val settings: String? = null, // JSON string
+    
+    // Memory and Context (JSON serialized)
+    val shortTermMemory: String? = null, // JSON array as string
+    val longTermMemory: String? = null, // JSON array as string
+    val contextSummary: String? = null,
+    
+    // Statistics
+    val totalMessages: Int = 0,
+    val userMessages: Int = 0,
+    val characterMessages: Int = 0,
+    val totalTokens: Int = 0,
+    val averageResponseTime: Float = 0.0f,
+    
+    // Metadata
+    val tags: String? = null, // JSON array as string
+    val notes: String? = null,
+    
+    // Timestamps
+    val createdAt: Date = Date(),
+    val updatedAt: Date = Date(),
+    val lastMessageAt: Date? = null,
+    
+    // Content Safety
+    val containsNsfw: Boolean = false,
+    val contentWarnings: String? = null // JSON array as string
+)
+
+// Room Entity for Message
+@Entity(
+    tableName = "messages",
+    indices = [
+        Index(value = ["conversationId"]),
+        Index(value = ["messageId"], unique = true),
+        Index(value = ["role"]),
+        Index(value = ["characterId"]),
+        Index(value = ["createdAt"]),
+        Index(value = ["sequenceNumber"]),
+        Index(value = ["conversationId", "sequenceNumber"])
+    ],
+    foreignKeys = [
+        ForeignKey(
+            entity = Conversation::class,
+            parentColumns = ["id"],
+            childColumns = ["conversationId"],
+            onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = Character::class,
+            parentColumns = ["id"],
+            childColumns = ["characterId"],
+            onDelete = ForeignKey.SET_NULL
+        )
+    ]
+)
+
+data class Message(
+    @PrimaryKey
+    val id: String,
+    
+    // Core Message Data
+    val conversationId: String,
+    val content: String,
+    val role: String, // .user., .character., .system.\n    val senderType: String? = null,\n    val timestamp: Date? = null,
+    
+    // Message Identification
+    val messageId: String,
+    val sequenceNumber: Int,
+    
+    // Character Context
+    val characterId: String? = null,
+    val characterName: String? = null,
+    
+    // User Interaction
+    val userId: String? = null,
+    val isEdited: Boolean = false,
+    val editHistory: String? = null, // JSON array as string
+    
+    // Message Quality and Feedback
+    val rating: Float? = null,
+    val feedback: String? = null,
+    val isLiked: Boolean? = null,
+    val isFlagged: Boolean = false,
+    val flagReason: String? = null,
+    
+    // Technical Metadata
+    val tokensUsed: Int = 0,
+    val processingTime: Float = 0.0f,
+    val modelUsed: String? = null,
+    val temperature: Float? = null,
+    val topP: Float? = null,
+    val regeneratedCount: Int = 0,
+    val isRegenerated: Boolean = false,
+    val parentMessageId: String? = null,
+    
+    // Media Attachments (JSON serialized)
+    val attachments: String? = null, // JSON array as string
+    val generatedImages: String? = null, // JSON array as string
+    
+    // Image Generation Metadata
+    val imagePrompt: String? = null,
+    val imageModel: String? = null,
+    val imageSize: String? = null,
+    val generationType: String? = null,
+    
+    // Timestamps
+    val createdAt: Date = Date(),
+    val updatedAt: Date = Date(),
+    
+    // Content Safety
+    val isNsfw: Boolean = false,
+    val contentWarnings: String? = null // JSON array as string
+)
+
+// Room Entity for User (for multi-user support)
+@Entity(
+    tableName = "users",
+    indices = [
+        Index(value = ["username"], unique = true),
+        Index(value = ["email"], unique = true),
+        Index(value = ["isActive"])
+    ]
+)
+
+data class User(
+    @PrimaryKey
+    val id: String,
+    
+    val username: String,
+    val email: String? = null,
+    val displayName: String? = null,
+    val avatarUrl: String? = null,
+    
+    // User Preferences (JSON serialized)
+    val preferences: String? = null, // JSON string
+    val settings: String? = null, // JSON string
+    
+    // Authentication
+    val passwordHash: String? = null,
+    val salt: String? = null,
+    val lastLogin: Date? = null,
+    val loginCount: Int = 0,
+    
+    // Status
+    val isActive: Boolean = true,
+    val isVerified: Boolean = false,
+    val role: String = "user", // 'user', 'admin', 'moderator'
+    
+    // Timestamps
+    val createdAt: Date = Date(),
+    val updatedAt: Date = Date()
+)
+
+// Room Entity for User Sessions
+@Entity(
+    tableName = "user_sessions",
+    indices = [
+        Index(value = ["userId"]),
+        Index(value = ["sessionToken"], unique = true),
+        Index(value = ["isActive"])
+    ],
+    foreignKeys = [
+        ForeignKey(
+            entity = User::class,
+            parentColumns = ["id"],
+            childColumns = ["userId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
+
+data class UserSession(
+    @PrimaryKey
+    val id: String,
+    
+    val userId: String,
+    val sessionToken: String,
+    val deviceInfo: String? = null,
+    val ipAddress: String? = null,
+    val userAgent: String? = null,
+    
+    val isActive: Boolean = true,
+    val expiresAt: Date,
+    val createdAt: Date = Date(),
+    val lastActivity: Date = Date()
+)
+
+// Data classes for JSON serialization of complex fields
+
+
+data class DetailedAppearance(
+    val height: String = "",
+    val build: String = "",
+    val hair: String = "",
+    val eyes: String = "",
+    val skin: String = "",
+    val clothing: String = "",
+    val distinctiveFeatures: List<String> = emptyList()
+)
+
+
+data class CharacterAbilities(
+    val abilities: List<String> = emptyList(),
+    val description: String = "",
+    val limitations: String = ""
+)
+
+
+data class SpeechPatterns(
+    val accent: String = "",
+    val vocabularyLevel: String = "",
+    val commonPhrases: List<String> = emptyList(),
+    val speechQuirks: List<String> = emptyList()
+)
+
+
+data class AdvancedPrompts(
+    val systemPrompt: String = "",
+    val scenario: String = "",
+    val postHistoryInstructions: String = "",
+    val characterNote: String = ""
+)
+
+
+data class PersonalityTrait(
+    val trait: String,
+    val value: Float, // 0.0 to 1.0
+    val description: String = ""
+)
+
+
+data class NSFWSettings(
+    val enabled: Boolean = false,
+    val explicitContent: Boolean = false,
+    val contentLevel: String = "mild", // mild, moderate, explicit
+    val topicsAllowed: List<String> = emptyList(),
+    val topicsForbidden: List<String> = emptyList(),
+    val ageRestriction: Int = 18
+)
+
+
+data class LorebookEntry(
+    val id: String,
+    val keys: List<String>,
+    val content: String,
+    val enabled: Boolean = true,
+    val insertionOrder: Int = 100,
+    val caseSensitive: Boolean = false,
+    val name: String = "",
+    val priority: Int = 0,
+    val comment: String = "",
+    val selective: Boolean = true,
+    val secondaryKeys: List<String> = emptyList(),
+    val constant: Boolean = false,
+    val position: String = "before_char" // before_char, after_char
+)
+
+
+data class CharacterBook(
+    val name: String = "",
+    val description: String = "",
+    val scanDepth: Int = 2,
+    val tokenBudget: Int = 1000,
+    val recursiveScanning: Boolean = true,
+    val entries: List<LorebookEntry> = emptyList(),
+    val extensions: Map<String, Any> = emptyMap()
+)
+
+
+data class ConversationSettings(
+    val contextLength: Int = 20,
+    val temperature: Float = 0.7f,
+    val topP: Float = 0.9f,
+    val maxTokens: Int = 512,
+    val enableMemory: Boolean = true,
+    val enableLorebook: Boolean = true,
+    val customInstructions: String = ""
+)
+
+// Type converters for Room
+class Converters {
+    @TypeConverter
+    fun fromDate(date: Date?): Long? = date?.time
+    
+    @TypeConverter
+    fun toDate(timestamp: Long?): Date? = timestamp?.let { Date(it) }
+}
+
+/**
+ * Character statistics from mobile API
+ */
+data class CharacterStats(
+    @SerializedName("average_rating")
+    val averageRating: Float = 0f,
+    @SerializedName("total_conversations")
+    val totalConversations: Int = 0,
+    @SerializedName("total_messages")
+    val totalMessages: Int = 0,
+    @SerializedName("usage_count")
+    val usageCount: Int = 0
+)
+
+/**
+ * Character card format (PNG metadata or JSON)
+ */
+data class CharacterCard(
+    @SerializedName("spec")
+    val spec: String = "chara_card_v2",
+    @SerializedName("spec_version")
+    val specVersion: String = "2.0",
+    @SerializedName("data")
+    val data: CharacterCardData
+)
+
+/**
+ * Character card data structure
+ */
+data class CharacterCardData(
+    @SerializedName("name")
+    val name: String,
+    @SerializedName("description")
+    val description: String,
+    @SerializedName("personality")
+    val personality: String,
+    @SerializedName("scenario")
+    val scenario: String,
+    @SerializedName("first_mes")
+    val firstMessage: String,
+    @SerializedName("mes_example")
+    val messageExample: String,
+    @SerializedName("creator_notes")
+    val creatorNotes: String?,
+    @SerializedName("system_prompt")
+    val systemPrompt: String?,
+    @SerializedName("post_history_instructions")
+    val postHistoryInstructions: String?,
+    @SerializedName("alternate_greetings")
+    val alternateGreetings: List<String> = emptyList(),
+    @SerializedName("character_book")
+    val characterBook: CharacterBook?,
+    @SerializedName("tags")
+    val tags: List<String> = emptyList(),
+    @SerializedName("creator")
+    val creator: String?,
+    @SerializedName("character_version")
+    val characterVersion: String?,
+    @SerializedName("extensions")
+    val extensions: Map<String, Any> = emptyMap()
+)
+
+/**
+ * Pagination information
+ */
+data class Pagination(
+    @SerializedName("page")
+    val page: Int,
+    @SerializedName("limit")
+    val limit: Int,
+    @SerializedName("total")
+    val total: Int,
+    @SerializedName("pages")
+    val pages: Int
+)
+
+/**
+ * Character list response (matches backend format)
+ */
+data class CharacterListResponse(
+    @SerializedName("characters")
+    val characters: List<Character>,
+    @SerializedName("pagination")
+    val pagination: Pagination? = null,
+    // Additional fields for internal use
+    val success: Boolean = true,
+    val hasMore: Boolean = false
+)
+
+/**
+ * Character creation request
+ */
+data class CreateCharacterRequest(
+    @SerializedName("name")
+    val name: String,
+    @SerializedName("description")
+    val description: String,
+    @SerializedName("personality")
+    val personality: String,
+    @SerializedName("greeting")
+    val greeting: String,
+    @SerializedName("example_dialogue")
+    val exampleDialogue: String?,
+    @SerializedName("tags")
+    val tags: List<String>,
+    @SerializedName("category")
+    val category: String,
+    @SerializedName("is_public")
+    val isPublic: Boolean = false,
+    @SerializedName("character_card")
+    val characterCard: CharacterCard?
+)
+
+/**
+ * Character update request
+ */
+data class UpdateCharacterRequest(
+    @SerializedName("name")
+    val name: String?,
+    @SerializedName("description")
+    val description: String?,
+    @SerializedName("personality")
+    val personality: String?,
+    @SerializedName("greeting")
+    val greeting: String?,
+    @SerializedName("example_dialogue")
+    val exampleDialogue: String?,
+    @SerializedName("tags")
+    val tags: List<String>?,
+    @SerializedName("category")
+    val category: String?,
+    @SerializedName("is_public")
+    val isPublic: Boolean?,
+    @SerializedName("character_card")
+    val characterCard: CharacterCard?
+)
+
+/**
+ * Character search/filter parameters
+ */
+data class CharacterSearchParams(
+    val query: String? = null,
+    val category: String? = null,
+    val tags: List<String> = emptyList(),
+    val isPublic: Boolean? = null,
+    val sortBy: String = "created_at",
+    val sortOrder: String = "desc",
+    val page: Int = 1,
+    val limit: Int = 20
+)
+
+/**
+ * Character categories
+ */
+object CharacterCategories {
+    const val ANIME = "anime"
+    const val GAME = "game"
+    const val BOOK = "book"
+    const val MOVIE = "movie"
+    const val ORIGINAL = "original"
+    const val HISTORICAL = "historical"
+    const val CELEBRITY = "celebrity"
+    const val OTHER = "other"
+    
+    val ALL = listOf(ANIME, GAME, BOOK, MOVIE, ORIGINAL, HISTORICAL, CELEBRITY, OTHER)
+}
+
+/**
+ * Favorite character request
+ */
+data class FavoriteCharacterRequest(
+    @SerializedName("character_id")
+    val characterId: String,
+    @SerializedName("is_favorite")
+    val isFavorite: Boolean
+)
+
+/**
+ * Generate avatar request
+ */
+data class GenerateAvatarRequest(
+    @SerializedName("prompt")
+    val prompt: String,
+    @SerializedName("style")
+    val style: String = "anime",
+    @SerializedName("gender")
+    val gender: String? = null,
+    @SerializedName("age_range")
+    val ageRange: String? = null
+)
+
+/**
+ * Rate character request
+ */
+data class RateCharacterRequest(
+    @SerializedName("rating")
+    val rating: Float // 1.0 to 5.0
+) 

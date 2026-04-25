@@ -1,0 +1,1408 @@
+package com.vortexai.android.ui.screens.characters
+
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CloudUpload
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import android.util.Base64
+import java.io.ByteArrayOutputStream
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.FileProvider
+import java.io.File
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CharacterCreateScreen(
+    onNavigateBack: () -> Unit,
+    onCharacterCreated: (String) -> Unit,
+    characterIdToEdit: String? = null,
+    viewModel: CharacterCreateViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    
+    // File picker for character card import
+    val filePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { 
+            viewModel.importCharacterCard(context, it)
+        }
+    }
+    
+    // Image picker for avatar selection
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { selectedUri ->
+            viewModel.handleImageSelection(context, selectedUri)
+        }
+    }
+    
+    var showImportDialog by remember { mutableStateOf(false) }
+    
+    // Load character for editing if characterIdToEdit is provided
+    LaunchedEffect(characterIdToEdit) {
+        characterIdToEdit?.let { id ->
+            viewModel.loadCharacterForEditing(id)
+        }
+    }
+    
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = if (characterIdToEdit != null) "Edit Character" else "Create Character",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
+                actions = {
+                    // Import button
+                    IconButton(onClick = { showImportDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Default.CloudUpload,
+                            contentDescription = "Import character card"
+                        )
+                    }
+                    
+                    // Save button
+                    IconButton(
+                        onClick = { 
+                            if (characterIdToEdit != null) {
+                                viewModel.updateCharacter(characterIdToEdit) { characterId ->
+                                    onCharacterCreated(characterId)
+                                }
+                            } else {
+                                viewModel.createCharacter { characterId ->
+                                    onCharacterCreated(characterId)
+                                }
+                            }
+                        },
+                        enabled = uiState.isFormValid && !uiState.isLoading
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Save,
+                            contentDescription = "Save character"
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            item {
+                CharacterAvatarSection(
+                    character = uiState.character,
+                    onAvatarUrlChange = viewModel::updateAvatarUrl,
+                    onImagePickerClick = { imagePickerLauncher.launch("image/*") }
+                )
+            }
+            
+            item {
+                CharacterBasicInfoSection(
+                    character = uiState.character,
+                    onNameChange = viewModel::updateName,
+                    onDisplayNameChange = viewModel::updateDisplayName,
+                    onDescriptionChange = viewModel::updateDescription,
+                    onShortDescriptionChange = viewModel::updateShortDescription,
+                    onLongDescriptionChange = viewModel::updateLongDescription,
+                    onPersonaChange = viewModel::updatePersona,
+                    onBackstoryChange = viewModel::updateBackstory
+                )
+            }
+            
+            item {
+                CharacterEnhancedDetailsSection(
+                    character = uiState.character,
+                    onAppearanceChange = viewModel::updateAppearance,
+                    onPersonalityChange = viewModel::updatePersonality,
+                    onScenarioChange = viewModel::updateScenario,
+                    onExampleDialogueChange = viewModel::updateExampleDialogue
+                )
+            }
+            
+            item {
+                CharacterMetadataSection(
+                    character = uiState.character,
+                    onCreatorChange = viewModel::updateCreator,
+                    onCreatorNotesChange = viewModel::updateCreatorNotes,
+                    onCharacterVersionChange = viewModel::updateCharacterVersion,
+                    onTagsChange = viewModel::updateTags,
+                    onCategoriesChange = viewModel::updateCategories
+                )
+            }
+            
+            item {
+                CharacterExtensionFieldsSection(
+                    character = uiState.character,
+                    onAgeChange = viewModel::updateAge,
+                    onGenderChange = viewModel::updateGender,
+                    onOccupationChange = viewModel::updateOccupation
+                )
+            }
+            
+            item {
+                RoleplaySettingsSection(
+                    character = uiState.character,
+                    onGreetingChange = viewModel::updateGreeting,
+                    onSystemPromptChange = viewModel::updateSystemPrompt,
+                    onPostHistoryInstructionsChange = viewModel::updatePostHistoryInstructions,
+                    onAlternateGreetingsChange = viewModel::updateAlternateGreetings,
+                    onAddAlternateGreeting = viewModel::addAlternateGreeting,
+                    onRemoveAlternateGreeting = viewModel::removeAlternateGreeting
+                )
+            }
+            
+            item {
+                GenerationSettingsSection(
+                    character = uiState.character,
+                    onTemperatureChange = viewModel::updateTemperature,
+                    onTopPChange = viewModel::updateTopP,
+                    onMaxTokensChange = viewModel::updateMaxTokens
+                )
+            }
+            
+            item {
+                ContentSettingsSection(
+                    character = uiState.character,
+                    onNsfwChange = viewModel::updateNsfw,
+                    onPublicChange = viewModel::updatePublic,
+                    onFeaturedChange = viewModel::updateIsFeatured
+                )
+            }
+            
+            item {
+                CharacterBookSection(
+                    character = uiState.character,
+                    onCharacterBookChange = viewModel::updateCharacterBook
+                )
+            }
+        }
+        
+        // Loading indicator
+        if (uiState.isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+        
+        // Error message
+        uiState.errorMessage?.let { error ->
+            Snackbar(
+                modifier = Modifier.padding(16.dp),
+                action = {
+                    TextButton(onClick = { viewModel.clearError() }) {
+                        Text("Dismiss")
+                    }
+                }
+            ) {
+                Text(error)
+            }
+        }
+    }
+    
+    // Import dialog
+    if (showImportDialog) {
+        ImportCharacterDialog(
+            onDismiss = { showImportDialog = false },
+            onImportFromFile = {
+                showImportDialog = false
+                filePickerLauncher.launch("*/*")
+            },
+            onImportFromUrl = { url ->
+                showImportDialog = false
+                viewModel.importCharacterFromUrl(url)
+            }
+        )
+    }
+}
+
+@Composable
+private fun CharacterAvatarSection(
+    character: CharacterCreateState,
+    onAvatarUrlChange: (String) -> Unit,
+    onImagePickerClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = "Character Avatar",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Medium
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .clickable { onImagePickerClick() },
+            contentAlignment = Alignment.Center
+        ) {
+            if (character.avatarBase64.isNotBlank()) {
+                // Display base64 image (from PNG import or image picker)
+                val imageBytes = Base64.decode(character.avatarBase64, Base64.DEFAULT)
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(imageBytes)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Character avatar",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else if (character.avatarUrl.isNotBlank()) {
+                // Display URL image
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(character.avatarUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = "Character avatar",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Default avatar",
+                    modifier = Modifier.size(48.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            // Add overlay for upload
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Color.Black.copy(alpha = 0.3f),
+                        CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Upload avatar",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        OutlinedTextField(
+            value = character.avatarUrl,
+            onValueChange = onAvatarUrlChange,
+            label = { Text("Avatar URL (Optional)") },
+            placeholder = { Text("https://example.com/avatar.jpg") },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+        
+        Text(
+            text = "Tap the avatar to select an image from your device",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+    }
+}
+
+// Enhanced Basic Information Section
+@Composable
+private fun CharacterBasicInfoSection(
+    character: CharacterCreateState,
+    onNameChange: (String) -> Unit,
+    onDisplayNameChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onShortDescriptionChange: (String) -> Unit,
+    onLongDescriptionChange: (String) -> Unit,
+    onPersonaChange: (String) -> Unit,
+    onBackstoryChange: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Basic Information",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            OutlinedTextField(
+                value = character.name,
+                onValueChange = onNameChange,
+                label = { Text("Character Name *") },
+                placeholder = { Text("Enter character name") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                isError = character.name.isBlank()
+            )
+            
+            OutlinedTextField(
+                value = character.displayName,
+                onValueChange = onDisplayNameChange,
+                label = { Text("Display Name") },
+                placeholder = { Text("Alternative display name") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+            
+            OutlinedTextField(
+                value = character.description,
+                onValueChange = onDescriptionChange,
+                label = { Text("Description") },
+                placeholder = { Text("Brief description of the character") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2,
+                maxLines = 4
+            )
+            
+            OutlinedTextField(
+                value = character.shortDescription,
+                onValueChange = onShortDescriptionChange,
+                label = { Text("Short Description") },
+                placeholder = { Text("Very brief description for previews") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2,
+                maxLines = 3
+            )
+            
+            OutlinedTextField(
+                value = character.longDescription,
+                onValueChange = onLongDescriptionChange,
+                label = { Text("Long Description") },
+                placeholder = { Text("Detailed description of the character") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3,
+                maxLines = 6
+            )
+            
+            OutlinedTextField(
+                value = character.persona,
+                onValueChange = onPersonaChange,
+                label = { Text("Persona") },
+                placeholder = { Text("Character's persona and role") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2,
+                maxLines = 4
+            )
+            
+            OutlinedTextField(
+                value = character.backstory,
+                onValueChange = onBackstoryChange,
+                label = { Text("Backstory") },
+                placeholder = { Text("Character's history and background") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3,
+                maxLines = 6
+            )
+        }
+    }
+}
+
+// Enhanced Character Details Section
+@Composable
+private fun CharacterEnhancedDetailsSection(
+    character: CharacterCreateState,
+    onAppearanceChange: (String) -> Unit,
+    onPersonalityChange: (String) -> Unit,
+    onScenarioChange: (String) -> Unit,
+    onExampleDialogueChange: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Enhanced Character Details",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            OutlinedTextField(
+                value = character.appearance,
+                onValueChange = onAppearanceChange,
+                label = { Text("Appearance") },
+                placeholder = { Text("Physical appearance and characteristics") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3,
+                maxLines = 6
+            )
+            
+            OutlinedTextField(
+                value = character.personality,
+                onValueChange = onPersonalityChange,
+                label = { Text("Personality") },
+                placeholder = { Text("Describe the character's personality traits") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3,
+                maxLines = 6
+            )
+            
+            OutlinedTextField(
+                value = character.scenario,
+                onValueChange = onScenarioChange,
+                label = { Text("Scenario") },
+                placeholder = { Text("Setting and background context") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2,
+                maxLines = 4
+            )
+            
+            OutlinedTextField(
+                value = character.exampleDialogue,
+                onValueChange = onExampleDialogueChange,
+                label = { Text("Example Dialogue") },
+                placeholder = { Text("Example conversations showing speech patterns") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3,
+                maxLines = 6
+            )
+        }
+    }
+}
+
+// Character Metadata Section
+@Composable
+private fun CharacterMetadataSection(
+    character: CharacterCreateState,
+    onCreatorChange: (String) -> Unit,
+    onCreatorNotesChange: (String) -> Unit,
+    onCharacterVersionChange: (String) -> Unit,
+    onTagsChange: (String) -> Unit,
+    onCategoriesChange: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Metadata",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            OutlinedTextField(
+                value = character.creator,
+                onValueChange = onCreatorChange,
+                label = { Text("Creator") },
+                placeholder = { Text("Character creator name") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+            
+            OutlinedTextField(
+                value = character.creatorNotes,
+                onValueChange = onCreatorNotesChange,
+                label = { Text("Creator Notes") },
+                placeholder = { Text("Notes from the character creator") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2,
+                maxLines = 4
+            )
+            
+            OutlinedTextField(
+                value = character.characterVersion,
+                onValueChange = onCharacterVersionChange,
+                label = { Text("Character Version") },
+                placeholder = { Text("1.0") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+            
+            OutlinedTextField(
+                value = character.tags,
+                onValueChange = onTagsChange,
+                label = { Text("Tags") },
+                placeholder = { Text("fantasy, magic, adventure (comma separated)") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2,
+                maxLines = 3
+            )
+            
+            OutlinedTextField(
+                value = character.categories,
+                onValueChange = onCategoriesChange,
+                label = { Text("Categories") },
+                placeholder = { Text("anime, fantasy, sci-fi (comma separated)") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2,
+                maxLines = 3
+            )
+        }
+    }
+}
+
+// Character Extension Fields Section
+@Composable
+private fun CharacterExtensionFieldsSection(
+    character: CharacterCreateState,
+    onAgeChange: (String) -> Unit,
+    onGenderChange: (String) -> Unit,
+    onOccupationChange: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Extension Fields",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                OutlinedTextField(
+                    value = character.age,
+                    onValueChange = onAgeChange,
+                    label = { Text("Age") },
+                    placeholder = { Text("25") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
+                )
+                
+                OutlinedTextField(
+                    value = character.gender,
+                    onValueChange = onGenderChange,
+                    label = { Text("Gender") },
+                    placeholder = { Text("Female") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
+                )
+            }
+            
+            OutlinedTextField(
+                value = character.occupation,
+                onValueChange = onOccupationChange,
+                label = { Text("Occupation") },
+                placeholder = { Text("Student, Teacher, etc.") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+        }
+    }
+}
+
+// Enhanced Roleplay Settings Section
+@Composable
+private fun RoleplaySettingsSection(
+    character: CharacterCreateState,
+    onGreetingChange: (String) -> Unit,
+    onSystemPromptChange: (String) -> Unit,
+    onPostHistoryInstructionsChange: (String) -> Unit,
+    onAlternateGreetingsChange: (List<String>) -> Unit,
+    onAddAlternateGreeting: (String) -> Unit,
+    onRemoveAlternateGreeting: (Int) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Roleplay Settings",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            OutlinedTextField(
+                value = character.greeting,
+                onValueChange = onGreetingChange,
+                label = { Text("Greeting Message") },
+                placeholder = { Text("Hello! I'm excited to chat with you!") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2,
+                maxLines = 4
+            )
+            
+            OutlinedTextField(
+                value = character.systemPrompt,
+                onValueChange = onSystemPromptChange,
+                label = { Text("System Prompt") },
+                placeholder = { Text("System instructions for the AI") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2,
+                maxLines = 4
+            )
+            
+            OutlinedTextField(
+                value = character.postHistoryInstructions,
+                onValueChange = onPostHistoryInstructionsChange,
+                label = { Text("Post History Instructions") },
+                placeholder = { Text("Instructions for after conversation history") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2,
+                maxLines = 4
+            )
+            
+            // Alternate Greetings
+            Text(
+                text = "Alternate Greetings",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Medium
+            )
+            
+            character.alternateGreetings.forEachIndexed { index, greeting ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = greeting,
+                        onValueChange = { newGreeting ->
+                            val newList = character.alternateGreetings.toMutableList()
+                            newList[index] = newGreeting
+                            onAlternateGreetingsChange(newList)
+                        },
+                        label = { Text("Greeting ${index + 1}") },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                    
+                    IconButton(onClick = { onRemoveAlternateGreeting(index) }) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Remove greeting"
+                        )
+                    }
+                }
+            }
+            
+            Button(
+                onClick = { onAddAlternateGreeting("") },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Add Alternate Greeting")
+            }
+        }
+    }
+}
+
+// Generation Settings Section
+@Composable
+private fun GenerationSettingsSection(
+    character: CharacterCreateState,
+    onTemperatureChange: (Float) -> Unit,
+    onTopPChange: (Float) -> Unit,
+    onMaxTokensChange: (Int) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Generation Settings",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                OutlinedTextField(
+                    value = character.temperature.toString(),
+                    onValueChange = { value -> 
+                        try {
+                            onTemperatureChange(value.toFloat())
+                        } catch (e: NumberFormatException) {
+                            // Handle invalid input
+                        }
+                    },
+                    label = { Text("Temperature") },
+                    placeholder = { Text("0.7") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
+                )
+                
+                OutlinedTextField(
+                    value = character.topP.toString(),
+                    onValueChange = { value -> 
+                        try {
+                            onTopPChange(value.toFloat())
+                        } catch (e: NumberFormatException) {
+                            // Handle invalid input
+                        }
+                    },
+                    label = { Text("Top P") },
+                    placeholder = { Text("0.9") },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
+                )
+            }
+            
+            OutlinedTextField(
+                value = character.maxTokens.toString(),
+                onValueChange = { value -> 
+                    try {
+                        onMaxTokensChange(value.toInt())
+                    } catch (e: NumberFormatException) {
+                        // Handle invalid input
+                    }
+                },
+                label = { Text("Max Tokens") },
+                placeholder = { Text("1000") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+        }
+    }
+}
+
+// Enhanced Content Settings Section
+@Composable
+private fun ContentSettingsSection(
+    character: CharacterCreateState,
+    onNsfwChange: (Boolean) -> Unit,
+    onPublicChange: (Boolean) -> Unit,
+    onFeaturedChange: (Boolean) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Content Settings",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "NSFW Content",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Switch(
+                    checked = character.isNsfw,
+                    onCheckedChange = onNsfwChange
+                )
+            }
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Public Character",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Switch(
+                    checked = character.isPublic,
+                    onCheckedChange = onPublicChange
+                )
+            }
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Featured Character",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Switch(
+                    checked = character.isFeatured,
+                    onCheckedChange = onFeaturedChange
+                )
+            }
+        }
+    }
+}
+
+// Character Book Section
+@Composable
+private fun CharacterBookSection(
+    character: CharacterCreateState,
+    onCharacterBookChange: (CharacterBook?) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Character Book / Lorebook",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            if (character.characterBook != null) {
+                CharacterBookPreview(characterBook = character.characterBook)
+            } else {
+                Text(
+                    text = "No character book configured. Character books are imported from SillyTavern character cards.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+// Character Book Preview Component
+@Composable
+private fun CharacterBookPreview(characterBook: CharacterBook) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        if (characterBook.name.isNotBlank()) {
+            Column {
+                Text(
+                    text = "Name:",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = characterBook.name,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+        
+        if (characterBook.description.isNotBlank()) {
+            Column {
+                Text(
+                    text = "Description:",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = characterBook.description,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(
+                    text = "Scan Depth:",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = characterBook.scanDepth.toString(),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            
+            Column {
+                Text(
+                    text = "Token Budget:",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant  
+                )
+                Text(
+                    text = characterBook.tokenBudget.toString(),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+        
+        Text(
+            text = "Entries: ${characterBook.entries.size}",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        
+        // Show first few entries as preview
+        characterBook.entries.take(3).forEach { entry ->
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    if (entry.name.isNotBlank()) {
+                        Text(
+                            text = entry.name,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    
+                    Text(
+                        text = "Keys: ${entry.keys.joinToString(", ")}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    
+                    Text(
+                        text = entry.content.take(100) + if (entry.content.length > 100) "..." else "",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+        }
+        
+        if (characterBook.entries.size > 3) {
+            Text(
+                text = "... and ${characterBook.entries.size - 3} more entries",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            )
+        }
+        }
+    }
+}
+
+@Composable
+private fun ImportCharacterDialog(
+    onDismiss: () -> Unit,
+    onImportFromFile: () -> Unit,
+    onImportFromUrl: (String) -> Unit
+) {
+    var urlText by remember { mutableStateOf("") }
+    var showUrlInput by remember { mutableStateOf(false) }
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Import Character Card") },
+        text = {
+            Column {
+                if (!showUrlInput) {
+                    Text("Choose how to import your SillyTavern character card:")
+                } else {
+                    Text("Enter the URL to the character card:")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = urlText,
+                        onValueChange = { urlText = it },
+                        label = { Text("Character Card URL") },
+                        placeholder = { Text("https://...") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            if (!showUrlInput) {
+                Row {
+                    TextButton(onClick = onImportFromFile) {
+                        Text("Import File")
+                    }
+                    TextButton(onClick = { showUrlInput = true }) {
+                        Text("Import URL")
+                    }
+                }
+            } else {
+                TextButton(
+                    onClick = { onImportFromUrl(urlText) },
+                    enabled = urlText.isNotBlank()
+                ) {
+                    Text("Import")
+                }
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+private fun CharacterAdditionalFieldsSection(
+    character: CharacterCreateState,
+    onCreatorNotesChange: (String) -> Unit,
+    onPostHistoryInstructionsChange: (String) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Additional Settings",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            OutlinedTextField(
+                value = character.creatorNotes,
+                onValueChange = onCreatorNotesChange,
+                label = { Text("Creator Notes") },
+                placeholder = { Text("Notes about character creation or usage") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2,
+                maxLines = 4
+            )
+            
+            OutlinedTextField(
+                value = character.postHistoryInstructions,
+                onValueChange = onPostHistoryInstructionsChange,
+                label = { Text("Post History Instructions") },
+                placeholder = { Text("Instructions that appear after the chat history") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2,
+                maxLines = 4
+            )
+        }
+    }
+}
+
+@Composable
+private fun CharacterAlternateGreetingsSection(
+    alternateGreetings: List<String>,
+    onAddGreeting: (String) -> Unit,
+    onRemoveGreeting: (Int) -> Unit
+) {
+    var newGreeting by remember { mutableStateOf("") }
+    
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Alternate Greetings",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            // Display existing alternate greetings
+            alternateGreetings.forEachIndexed { index, greeting ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            text = greeting,
+                            modifier = Modifier.weight(1f),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        
+                        IconButton(
+                            onClick = { onRemoveGreeting(index) },
+                            modifier = Modifier.size(24.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Remove greeting",
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
+            }
+            
+            // Add new greeting
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                OutlinedTextField(
+                    value = newGreeting,
+                    onValueChange = { newGreeting = it },
+                    label = { Text("New Alternate Greeting") },
+                    placeholder = { Text("Enter an alternate greeting...") },
+                    modifier = Modifier.weight(1f),
+                    minLines = 2,
+                    maxLines = 4
+                )
+                
+                FilledTonalButton(
+                    onClick = {
+                        if (newGreeting.isNotBlank()) {
+                            onAddGreeting(newGreeting)
+                            newGreeting = ""
+                        }
+                    },
+                    enabled = newGreeting.isNotBlank()
+                ) {
+                    Text("Add")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CharacterBookSection(
+    characterBook: CharacterBook
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Character Book / Lorebook",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            
+            if (characterBook.name.isNotBlank()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Name:",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = characterBook.name,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+            
+            if (characterBook.description.isNotBlank()) {
+                Column {
+                    Text(
+                        text = "Description:",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = characterBook.description,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "Scan Depth:",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = characterBook.scanDepth.toString(),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                
+                Column {
+                    Text(
+                        text = "Token Budget:",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant  
+                    )
+                    Text(
+                        text = characterBook.tokenBudget.toString(),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+            
+            Text(
+                text = "Entries: ${characterBook.entries.size}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            
+            // Show first few entries as preview
+            characterBook.entries.take(3).forEach { entry ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        if (entry.name.isNotBlank()) {
+                            Text(
+                                text = entry.name,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                        
+                        Text(
+                            text = "Keys: ${entry.keys.joinToString(", ")}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        
+                        Text(
+                            text = entry.content.take(100) + if (entry.content.length > 100) "..." else "",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+            }
+            
+            if (characterBook.entries.size > 3) {
+                Text(
+                    text = "... and ${characterBook.entries.size - 3} more entries",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
+        }
+    }
+} 

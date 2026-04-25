@@ -1,0 +1,81 @@
+{
+  "provider": {
+    "name": "Fal AI - Nano Banana Pro",
+    "type": "IMAGE_GENERATION",
+    "baseUrl": "https://fal.run",
+    "apiKey": "",
+    "isEnabled": true
+  },
+  "endpoints": [
+    {
+      "path": "/fal-ai/nano-banana-pro",
+      "method": "POST",
+      "purpose": "image_gen",
+      "requestSchema": {
+        "headers": {
+          "Authorization": "Key {apiKey}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "prompt": "{prompt}",
+          "num_images": 1,
+          "aspect_ratio": "1:1",
+          "output_format": "png",
+          "resolution": "1K",
+          "enable_web_search": false
+        }
+      },
+      "responseSchema": {
+        "imageUrlPath": "images[0].url",
+        "errorPath": "detail"
+      }
+    }
+  ],
+  "models": [
+    {
+      "modelId": "nano-banana-pro",
+      "displayName": "Nano Banana Pro",
+      "isActive": true,
+      "capabilities": {},
+      "parameters": [
+        {
+          "name": "aspect_ratio",
+          "type": "STRING",
+          "defaultValue": "1:1",
+          "required": false,
+          "description": "Image aspect ratio: 21:9, 16:9, 3:2, 4:3, 5:4, 1:1, 4:5, 3:4, 2:3, 9:16"
+        },
+        {
+          "name": "num_images",
+          "type": "INTEGER",
+          "defaultValue": "1",
+          "minValue": "1",
+          "maxValue": "4",
+          "required": false,
+          "description": "Number of images to generate"
+        },
+        {
+          "name": "output_format",
+          "type": "STRING",
+          "defaultValue": "png",
+          "required": false,
+          "description": "Output format: jpeg, png, or webp"
+        },
+        {
+          "name": "resolution",
+          "type": "STRING",
+          "defaultValue": "1K",
+          "required": false,
+          "description": "Image resolution: 1K, 2K, or 4K"
+        },
+        {
+          "name": "enable_web_search",
+          "type": "BOOLEAN",
+          "defaultValue": "false",
+          "required": false,
+          "description": "Enable web search for image generation"
+        }
+      ]
+    }
+  ]
+}

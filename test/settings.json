@@ -1,0 +1,18 @@
+{
+    "geometry": "1707x889+-42+44",
+    "show_image": true,
+    "csv_fields": {
+        "Model ID": true,
+        "Model Name": true,
+        "Model Category": true,
+        "Description": true,
+        "Instance Prompt": true,
+        "Screenshot URL": true,
+        "Is NSFW": true,
+        "Feature": true
+    },
+    "nsfw_filter": {
+        "image": "All",
+        "lora": "All"
+    }
+}

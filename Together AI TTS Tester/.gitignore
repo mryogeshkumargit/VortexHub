@@ -1,0 +1,9 @@
+# Environment variables
+.env
+
+# Audio test files
+*.mp3
+
+# Test results
+*_results.json
+*.txt

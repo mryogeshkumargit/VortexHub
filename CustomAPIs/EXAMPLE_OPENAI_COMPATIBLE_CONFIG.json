@@ -1,0 +1,90 @@
+{
+  "provider": {
+    "name": "OpenAI Compatible",
+    "type": "TEXT_GENERATION",
+    "baseUrl": "https://api.openai.com",
+    "apiKey": "",
+    "isEnabled": true
+  },
+  "endpoints": [
+    {
+      "path": "/v1/chat/completions",
+      "method": "POST",
+      "purpose": "chat",
+      "requestSchema": {
+        "headers": {
+          "Authorization": "Bearer {apiKey}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "model": "{modelId}",
+          "messages": "{messages}",
+          "temperature": "{temperature}",
+          "max_tokens": "{maxTokens}",
+          "top_p": "{topP}",
+          "frequency_penalty": "{frequencyPenalty}",
+          "stream": false
+        }
+      },
+      "responseSchema": {
+        "dataPath": "choices[0].message.content",
+        "errorPath": "error.message"
+      }
+    }
+  ],
+  "models": [
+    {
+      "modelId": "gpt-4o",
+      "displayName": "GPT-4o",
+      "isActive": true,
+      "capabilities": {
+        "streaming": true,
+        "vision": true
+      },
+      "parameters": [
+        {
+          "name": "messages",
+          "type": "ARRAY",
+          "required": true,
+          "description": "Array of message objects"
+        },
+        {
+          "name": "temperature",
+          "type": "FLOAT",
+          "defaultValue": "0.7",
+          "minValue": "0.0",
+          "maxValue": "2.0",
+          "required": false,
+          "description": "Controls randomness in responses"
+        },
+        {
+          "name": "maxTokens",
+          "type": "INTEGER",
+          "defaultValue": "2048",
+          "minValue": "1",
+          "maxValue": "4096",
+          "required": false,
+          "description": "Maximum tokens in response"
+        },
+        {
+          "name": "topP",
+          "type": "FLOAT",
+          "defaultValue": "1.0",
+          "minValue": "0.0",
+          "maxValue": "1.0",
+          "required": false,
+          "description": "Nucleus sampling parameter"
+        },
+        {
+          "name": "frequencyPenalty",
+          "type": "FLOAT",
+          "defaultValue": "0.0",
+          "minValue": "0.0",
+          "maxValue": "2.0",
+          "required": false,
+          "description": "Reduces repetition"
+        }
+      ]
+    }
+  ]
+}

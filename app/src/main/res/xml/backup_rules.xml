@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Include user preferences and settings -->
+    <include domain="sharedpref" path="." />
+    
+    <!-- Include database files -->
+    <include domain="database" path="." />
+    
+    <!-- Include all files and then exclude sensitive ones -->
+    <include domain="file" path="." />
+    
+    <!-- Exclude sensitive data -->
+    <exclude domain="sharedpref" path="api_keys.xml" />
+    <exclude domain="database" path="temp_cache.db" />
+    
+    <!-- Exclude temporary files -->
+    <exclude domain="file" path="temp/" />
+    <exclude domain="file" path="cache/" />
+</full-backup-content> 
