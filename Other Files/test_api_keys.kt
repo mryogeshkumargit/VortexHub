@@ -10,8 +10,8 @@ import kotlinx.coroutines.runBlocking
 fun main() {
     println("Testing provided API keys...")
     
-    val togetherApiKey = "31980f30c8041ce661665b782482f885d89a2296abf856111bafee8507c64d5c"
-    val openRouterApiKey = "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"
+    val togetherApiKey = ""
+    val openRouterApiKey = ""
     
     runBlocking {
         // Test Together AI

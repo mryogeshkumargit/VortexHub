@@ -103,12 +103,12 @@ def test_together_ai_api(api_key):
 
 if __name__ == "__main__":
     # Replace with your actual API key
-    api_key = "your-api-key-here"
+    api_key = ""
     
     print("🚀 Together AI API Tester")
     print("=" * 50)
     
-    if api_key == "your-api-key-here":
+    if api_key == "":
         print("Please edit this file and set your Together AI API key")
         print("Get it from: https://api.together.xyz/settings/api-keys")
     else:

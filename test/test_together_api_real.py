@@ -3,7 +3,7 @@ import requests
 import json
 
 def test_together_ai_api():
-    api_key = '89c6de4fade1bb8754bf040204388c6df586aff83d48fe9385280dd7c576df50'
+    api_key = ''
     url = 'https://api.together.xyz/v1/models'
     headers = {'Authorization': f'Bearer {api_key}'}
 

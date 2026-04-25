@@ -5,7 +5,7 @@ import json
 def test_android_exact_logic():
     """Test the exact logic the Android app should be using"""
     
-    api_key = '89c6de4fade1bb8754bf040204388c6df586aff83d48fe9385280dd7c576df50'
+    api_key = ''
     
     print('🔍 TESTING EXACT ANDROID APP LOGIC')
     print('=' * 60)

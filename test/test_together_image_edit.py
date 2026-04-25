@@ -10,7 +10,7 @@ def test_together_ai_image_edit():
     """Test Together AI image-to-image API with FLUX kontext models"""
     
     # API configuration
-    api_key = "89c6de4fade1bb8754bf040204388c6df586aff83d48fe9385280dd7c576df50"  # Replace with actual key
+    api_key = ""  # Replace with actual key
     base_url = "https://api.together.xyz/v1"
     
     # Test models
@@ -94,7 +94,7 @@ def test_together_ai_image_edit():
 def test_together_ai_models_list():
     """Test fetching available models from Together AI"""
     
-    api_key = "89c6de4fade1bb8754bf040204388c6df586aff83d48fe9385280dd7c576df50"
+    api_key = ""
     
     print("Fetching Together AI models...")
     

@@ -5,7 +5,7 @@ import json
 def simulate_android_app_logic():
     """Simulate exactly what the Android app should now do"""
     
-    api_key = '89c6de4fade1bb8754bf040204388c6df586aff83d48fe9385280dd7c576df50'
+    api_key = ''
     response = requests.get('https://api.together.xyz/v1/models', headers={'Authorization': f'Bearer {api_key}'})
     
     print('🔍 SIMULATING ANDROID APP BEHAVIOR (AFTER FIX)')

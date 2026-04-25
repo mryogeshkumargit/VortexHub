@@ -13,7 +13,7 @@ fun main() {
     logger.info("Starting Flux API test")
     
     // Replace with your actual API key
-    val apiKey = "YOUR_API_KEY_HERE"
+    val apiKey = ""
     
     val modelsLabApi = ModelsLabImageApi()
     
